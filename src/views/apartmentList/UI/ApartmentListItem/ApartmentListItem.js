@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from "react-router-dom";
-import { Mask } from '../../../module'
+import { Mask } from '../../../../module'
 
 class ApartmentListItem extends React.Component {
     render() {

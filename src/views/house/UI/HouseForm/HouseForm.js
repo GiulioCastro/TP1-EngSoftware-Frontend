@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { GenericForm } from '../../../component/'
+import { GenericForm } from '../../../../component'
 
 class HouseForm extends React.Component {
     render() {

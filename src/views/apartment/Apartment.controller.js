@@ -1,8 +1,8 @@
-import React from 'react'
-import ApartmentView from './Apartment.view'
-import GenericForm from '../../component/genericForm/GenericForm'
-import {RestAPI, Mask} from '../../module'
-import {withRouter} from "react-router-dom"
+import React from 'react';
+import ApartmentView from './Apartment.view';
+import GenericForm from '../../component/genericForm/GenericForm';
+import {RestAPI, Mask} from '../../module';
+import {withRouter} from "react-router-dom";
 
 class ApartmentController extends React.Component {
     constructor(props) {
@@ -156,8 +156,7 @@ class ApartmentController extends React.Component {
             list: [],
             submitType: ApartmentView.SUBMIT_TYPE.INSERT,
             currentStep: ApartmentView.FORM_STEP.APARTMENT,
-            awaitingList: false,
-            awaitingApartment: false,
+            awaitingData: false,
             awaitingSubmit: false,
             awaitingDelete: false,
         };
@@ -166,14 +165,39 @@ class ApartmentController extends React.Component {
     }
     
     componentDidMount(){        
-        if(this.props.match.params.id) this.getApartmentById();
+        let p1 = this.getAllNeighborhoods(), p2;
+        if(this.props.match.params.id) p2 = this.getApartmentById();
+
+        this.setState({awaitingData: true});
+        Promise.all([p1, p2]).then(() => {
+            this.setState({awaitingData: false});
+        }).catch((e) => this.setState({awaitingData: false}, () => {
+            console.log(e);
+            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+            this.props.history.push("/apartments");
+        }));
+    }
+    
+    getAllNeighborhoods(){
+        return RestAPI.GetAllNeighborhoods().then((res) => {
+            console.log(res)
+            if(res.status && res.data) {
+                let {address} = this.state;
+                address.neighborhood.options = res.data.map((neighborhood) => {return {value: neighborhood.name, label: neighborhood.name}});
+                address.neighborhood.options.unshift({value: "Outro", label: "Outro"});
+                address.neighborhood.options.unshift({value: "", label: "Selecione"});
+                this.setState({address});
+            } else {
+                window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+                this.props.history.push("/apartments");
+            }
+        })
     }
 
     getApartmentById(){
-        this.setState({awaitingApartment: true, submitType: ApartmentView.SUBMIT_TYPE.UPDATE});
-        RestAPI.GetApartmentById(this.props.match.params.id).then((res) => {
+        this.setState({submitType: ApartmentView.SUBMIT_TYPE.UPDATE});
+        return RestAPI.GetApartmentById(this.props.match.params.id).then((res) => {
             console.log(res)
-            this.setState({awaitingApartment: false});
             if(res.status && res.data) {
                 let {apartment, address} = this.state;
                 
@@ -208,14 +232,8 @@ class ApartmentController extends React.Component {
                 window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
                 this.props.history.push("/apartments");
             }
-        }).catch((e) => this.setState({awaitingApartment: false}, () => {
-            console.log(e);
-            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
-            this.props.history.push("/apartments");
-        }));
+        })
     }
-
-    toggleStep = (step) => this.setState({currentStep: step});
 
     onInputApartmentChange(value, id) {
 		let {apartment} = this.state;
@@ -250,6 +268,21 @@ class ApartmentController extends React.Component {
         }
 		this.setState({address});
     }
+
+    resetForm(){
+        let {apartment, address} = this.state;
+
+        Object.keys(apartment).map((key) => { 
+            if(apartment[key].typeInput === GenericForm.FORM_CHECKBOX) apartment[key].value = false;
+            else apartment[key].value = "";
+        });
+
+        Object.keys(address).map((key) => address[key].value = "");
+
+		this.setState({apartment, address, currentStep: ApartmentView.FORM_STEP.APARTMENT});
+    }
+
+    toggleStep = (step) => this.setState({currentStep: step});
     
     handleApartmentSubmit(e){
         e.preventDefault();
@@ -350,23 +383,10 @@ class ApartmentController extends React.Component {
         }));
     }
 
-    resetForm(){
-        let {apartment, address} = this.state;
-
-        Object.keys(apartment).map((key) => { 
-            if(apartment[key].typeInput === GenericForm.FORM_CHECKBOX) apartment[key].value = false;
-            else apartment[key].value = "";
-        });
-
-        Object.keys(address).map((key) => address[key].value = "");
-
-		this.setState({apartment, address, currentStep: ApartmentView.FORM_STEP.APARTMENT});
-    }
-
     render() {
         return (
             <ApartmentView
-                awaitingApartment={this.state.awaitingApartment}
+                awaitingData={this.state.awaitingData}
                 awaitingSubmit={this.state.awaitingSubmit}
                 awaitingDelete={this.state.awaitingDelete}
                 apartmentForm={this.state.apartment}

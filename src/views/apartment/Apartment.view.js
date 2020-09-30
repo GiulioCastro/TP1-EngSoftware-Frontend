@@ -17,7 +17,7 @@ class ApartmentView extends React.Component {
 
     render() {
         const {
-            awaitingApartment,
+            awaitingData,
             awaitingDelete,
             awaitingSubmit,
             apartmentForm,
@@ -39,7 +39,7 @@ class ApartmentView extends React.Component {
                         {currentStep === ApartmentView.FORM_STEP.APARTMENT ? (
                             <ApartmentForm
                                 form={apartmentForm}
-                                awaitingData={awaitingApartment}
+                                awaitingData={awaitingData}
                                 awaitingDelete={awaitingDelete}
                                 insertSubmit={submitType === ApartmentView.SUBMIT_TYPE.INSERT}
                                 onInputChange={onInputApartmentChange}

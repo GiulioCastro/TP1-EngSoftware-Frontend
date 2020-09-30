@@ -1,5 +1,5 @@
 import React from 'react'
-import HouseForm from './UI/HouseForm'
+import HouseForm from './UI/HouseForm/'
 
 import {AddressForm} from '../../component'
 
@@ -17,7 +17,7 @@ class HouseView extends React.Component {
 
     render() {
         const {
-            awaitingHouse,
+            awaitingData,
             awaitingDelete,
             awaitingSubmit,
             houseForm,
@@ -39,7 +39,7 @@ class HouseView extends React.Component {
                         {currentStep === HouseView.FORM_STEP.HOUSE ? (
                             <HouseForm
                                 form={houseForm}
-                                awaitingData={awaitingHouse}
+                                awaitingData={awaitingData}
                                 awaitingDelete={awaitingDelete}
                                 insertSubmit={submitType === HouseView.SUBMIT_TYPE.INSERT}
                                 onInputChange={onInputHouseChange}

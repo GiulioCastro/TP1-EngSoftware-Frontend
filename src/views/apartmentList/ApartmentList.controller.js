@@ -1,5 +1,5 @@
 import React from 'react'
-import ApartmentListView from './ApartmentList.view'
+import ApartmentListView from './ApartmentList.iew'
 import {RestAPI} from '../../module'
 
 class ApartmentListController extends React.Component {

@@ -127,22 +127,46 @@ class HouseController extends React.Component {
             },
             currentStep: HouseView.FORM_STEP.HOUSE,
             submitType: HouseView.SUBMIT_TYPE.INSERT,
-            awaitingHouse: false,
+            awaitingData: false,
             awaitingSubmit: false,
             awaitingDelete: false,
         };
         this.resetForm = this.resetForm.bind(this);
     }
-    
-    componentDidMount(){
-        if(this.props.match.params.id) this.getHouseById();
+    componentDidMount(){        
+        let p1 = this.getAllNeighborhoods(), p2;
+        if(this.props.match.params.id) p2 = this.getHouseById();
+
+        this.setState({awaitingData: true});
+        Promise.all([p1, p2]).then(() => {
+            this.setState({awaitingData: false});
+        }).catch((e) => this.setState({awaitingData: false}, () => {
+            console.log(e);
+            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+            this.props.history.push("/houses");
+        }));
+    }
+
+    getAllNeighborhoods(){
+        return RestAPI.GetAllNeighborhoods().then((res) => {
+            console.log(res)
+            if(res.status && res.data) {
+                let {address} = this.state;
+                address.neighborhood.options = res.data.map((neighborhood) => {return {value: neighborhood.name, label: neighborhood.name}});
+                address.neighborhood.options.unshift({value: "Outro", label: "Outro"});
+                address.neighborhood.options.unshift({value: "", label: "Selecione"});
+                this.setState({address});
+            } else {
+                window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+                this.props.history.push("/houses");
+            }
+        });
     }
     
     getHouseById(){
-        this.setState({awaitingHouse: true, submitType: HouseView.SUBMIT_TYPE.UPDATE});
+        this.setState({submitType: HouseView.SUBMIT_TYPE.UPDATE});
         RestAPI.GetHouseById(this.props.match.params.id).then((res) => {
             console.log(res)
-            this.setState({awaitingHouse: false});
             if(res.status && res.data) {
                 let {house, address} = this.state;
                 
@@ -173,14 +197,8 @@ class HouseController extends React.Component {
                 window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
                 this.props.history.push("/houses");
             }
-        }).catch((e) => this.setState({awaitingHouse: false}, () => {
-            console.log(e);
-            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
-            this.props.history.push("/houses");
-        }));
+        });
     }
-
-    toggleStep = (step) => this.setState({currentStep: step});
 
     onInputHouseChange(value, id) {
 		let {house} = this.state;
@@ -214,6 +232,21 @@ class HouseController extends React.Component {
         }
 		this.setState({address});
 	}
+
+    resetForm(){
+        let {house, address} = this.state;
+
+        Object.keys(house).map((key) => { 
+            if(house[key].typeInput === GenericForm.FORM_CHECKBOX) house[key].value = false;
+            else house[key].value = "";
+        });
+
+        Object.keys(address).map((key) => address[key].value = "");
+
+		this.setState({house, address, currentStep: HouseView.FORM_STEP.HOUSE});
+    }
+
+    toggleStep = (step) => this.setState({currentStep: step});
 
     handleHouseSubmit(e){
         e.preventDefault();
@@ -310,23 +343,10 @@ class HouseController extends React.Component {
         }));
     }
 
-    resetForm(){
-        let {house, address} = this.state;
-
-        Object.keys(house).map((key) => { 
-            if(house[key].typeInput === GenericForm.FORM_CHECKBOX) house[key].value = false;
-            else house[key].value = "";
-        });
-
-        Object.keys(address).map((key) => address[key].value = "");
-
-		this.setState({house, address, currentStep: HouseView.FORM_STEP.HOUSE});
-    }
-
     render() {
         return (
             <HouseView
-                awaitingHouse={this.state.awaitingHouse}
+                awaitingData={this.state.awaitingData}
                 awaitingSubmit={this.state.awaitingSubmit}
                 awaitingDelete={this.state.awaitingDelete}
                 houseForm={this.state.house}
