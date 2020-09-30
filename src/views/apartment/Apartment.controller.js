@@ -118,7 +118,7 @@ class ApartmentController extends React.Component {
 					value: ""
                 },
                 neighborhood: {
-                    typeInput: GenericForm.FORM_SELECT,
+                    typeInput: GenericForm.FORM_INPUT,
 					required: true,
                     label: "Bairro",
 					value: ""
