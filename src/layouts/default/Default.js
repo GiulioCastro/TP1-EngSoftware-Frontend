@@ -16,7 +16,7 @@ class DefaultLayout extends React.Component {
 
 	render() {		
 		return (
-			<div style={{minHeight: '100vh'}} className='d-flex flex-column bg-secondary'>
+			<div style={{minHeight: "100vh"}} className="d-flex flex-column bg-secondary">
 				<Header />
 				<main className="flex-grow-1">
 					{this.props.children}

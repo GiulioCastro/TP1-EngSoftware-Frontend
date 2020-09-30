@@ -2,12 +2,18 @@
 import {Default} from "./layouts/";
 
 // Route Views
-import {House, Apartment} from "./views/";
+import {House, HouseList, Apartment, ApartmentList} from "./views/";
 
 export default [
 	{
 		exact: true,
 		path: "/houses",
+		layout: Default,
+		component: HouseList
+	},
+	{
+		exact: true,
+		path: "/house-register",
 		layout: Default,
 		component: House
 	},
@@ -20,6 +26,12 @@ export default [
 	{
 		exact: true,
 		path: "/apartments",
+		layout: Default,
+		component: ApartmentList
+	},
+	{
+		exact: true,
+		path: "/apartment-register",
 		layout: Default,
 		component: Apartment
 	},

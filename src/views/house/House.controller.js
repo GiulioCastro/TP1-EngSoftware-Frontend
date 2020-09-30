@@ -125,11 +125,8 @@ class HouseController extends React.Component {
 					value: ""
                 }
             },
-            list: [],
-            currentTab: HouseView.TAB.LIST,
             currentStep: HouseView.FORM_STEP.HOUSE,
             submitType: HouseView.SUBMIT_TYPE.INSERT,
-            awaitingList: false,
             awaitingHouse: false,
             awaitingSubmit: false,
             awaitingDelete: false,
@@ -139,30 +136,14 @@ class HouseController extends React.Component {
     
     componentDidMount(){
         if(this.props.match.params.id) this.getHouseById();
-        else this.getAllHouses();
     }
-
-    getAllHouses(){
-        this.setState({awaitingData: true});
-        RestAPI.GetAllHouses().then((res) => {
-            console.log(res)
-            this.setState({awaitingData: false});
-            if(res.status) {
-                this.setState({list: res.data})
-            } else {
-
-            }
-        }).catch((e) => this.setState({awaitingData: false}, () => {
-            console.log(e)
-        }));
-    } 
     
     getHouseById(){
-        this.setState({awaitingHouse: true, currentTab: HouseView.TAB.FORM, submitType: HouseView.SUBMIT_TYPE.UPDATE});
+        this.setState({awaitingHouse: true, submitType: HouseView.SUBMIT_TYPE.UPDATE});
         RestAPI.GetHouseById(this.props.match.params.id).then((res) => {
             console.log(res)
             this.setState({awaitingHouse: false});
-            if(res.status) {
+            if(res.status && res.data) {
                 let {house, address} = this.state;
                 
                 house.roomsQuantity.value = res.data.roomsQuantity;
@@ -188,14 +169,18 @@ class HouseController extends React.Component {
                 address.streetNumber.value = res.data.address.streetNumber;
 
                 this.setState({house, address});
+            } else {
+                window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+                this.props.history.push("/houses");
             }
         }).catch((e) => this.setState({awaitingHouse: false}, () => {
-            console.log(e)
+            console.log(e);
+            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+            this.props.history.push("/houses");
         }));
     }
 
     toggleStep = (step) => this.setState({currentStep: step});
-    toggleTab = (tab) => this.setState({currentTab: tab});
 
     onInputHouseChange(value, id) {
 		let {house} = this.state;
@@ -314,7 +299,7 @@ class HouseController extends React.Component {
             console.log(res);
             this.setState({awaitingDelete: false});
             if(res.status){
-                window.alert("Imóvel excluido com sucesso.");             
+                window.alert("Imóvel excluído com sucesso.");             
                 this.props.history.push("/houses")   
             } else {
                 window.alert("Houve um erro ao excluir o imóvel, verifique sua conexão e tente novamente.");
@@ -341,17 +326,13 @@ class HouseController extends React.Component {
     render() {
         return (
             <HouseView
-                awaitingList={this.state.awaitingList}
                 awaitingHouse={this.state.awaitingHouse}
                 awaitingSubmit={this.state.awaitingSubmit}
                 awaitingDelete={this.state.awaitingDelete}
-                houseList={this.state.list}
                 houseForm={this.state.house}
                 addressForm={this.state.address}
-                currentTab={this.state.currentTab}
                 currentStep={this.state.currentStep}
                 submitType={this.state.submitType}
-                toggleTab={this.toggleTab.bind(this)}
                 onInputHouseChange={this.onInputHouseChange.bind(this)}
                 onInputAddressChange={this.onInputAddressChange.bind(this)}
                 handleHouseSubmit={this.handleHouseSubmit.bind(this)}

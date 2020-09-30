@@ -155,7 +155,6 @@ class ApartmentController extends React.Component {
             },
             list: [],
             submitType: ApartmentView.SUBMIT_TYPE.INSERT,
-            currentTab: ApartmentView.TAB.LIST,
             currentStep: ApartmentView.FORM_STEP.APARTMENT,
             awaitingList: false,
             awaitingApartment: false,
@@ -168,30 +167,14 @@ class ApartmentController extends React.Component {
     
     componentDidMount(){        
         if(this.props.match.params.id) this.getApartmentById();
-        else this.getAllAparments();
     }
 
-    getAllAparments(){
-        this.setState({awaitingList: true});
-        RestAPI.GetAllApartments().then((res) => {
-            console.log(res)
-            this.setState({awaitingList: false});
-            if(res.status) {
-                this.setState({list: res.data})
-            } else {
-
-            }
-        }).catch((e) => this.setState({awaitingList: false}, () => {
-            console.log(e)
-        }));
-    }
-    
     getApartmentById(){
-        this.setState({awaitingApartment: true, currentTab: ApartmentView.TAB.FORM, submitType: ApartmentView.SUBMIT_TYPE.UPDATE});
+        this.setState({awaitingApartment: true, submitType: ApartmentView.SUBMIT_TYPE.UPDATE});
         RestAPI.GetApartmentById(this.props.match.params.id).then((res) => {
             console.log(res)
             this.setState({awaitingApartment: false});
-            if(res.status) {
+            if(res.status && res.data) {
                 let {apartment, address} = this.state;
                 
                 apartment.roomsQuantity.value = res.data.roomsQuantity;
@@ -221,14 +204,18 @@ class ApartmentController extends React.Component {
                 address.streetNumber.value = res.data.address.streetNumber;
 
                 this.setState({apartment, address});
+            } else {
+                window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+                this.props.history.push("/apartments");
             }
         }).catch((e) => this.setState({awaitingApartment: false}, () => {
-            console.log(e)
+            console.log(e);
+            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+            this.props.history.push("/apartments");
         }));
     }
 
     toggleStep = (step) => this.setState({currentStep: step});
-    toggleTab = (tab) => this.setState({currentTab: tab});
 
     onInputApartmentChange(value, id) {
 		let {apartment} = this.state;
@@ -320,7 +307,6 @@ class ApartmentController extends React.Component {
             if(res.status){
                 window.alert("Imóvel adicionado com sucesso.");
                 this.resetForm();
-                this.getAllAparments();
             } else {
                 window.alert("Houve um erro ao adicionar o imóvel, verifique sua conexão e tente novamente.");
             }
@@ -353,8 +339,8 @@ class ApartmentController extends React.Component {
             console.log(res);
             this.setState({awaitingDelete: false});
             if(res.status){
-                window.alert("Imóvel excluir com sucesso.");             
-                this.props.history.push("/apartments")   
+                window.alert("Imóvel excluído com sucesso.");             
+                this.props.history.push("/apartments");
             } else {
                 window.alert("Houve um erro ao excluir o imóvel, verifique sua conexão e tente novamente.");
             }
@@ -380,17 +366,13 @@ class ApartmentController extends React.Component {
     render() {
         return (
             <ApartmentView
-                awaitingList={this.state.awaitingList}
                 awaitingApartment={this.state.awaitingApartment}
                 awaitingSubmit={this.state.awaitingSubmit}
                 awaitingDelete={this.state.awaitingDelete}
-                apartmentList={this.state.list}
                 apartmentForm={this.state.apartment}
                 addressForm={this.state.address}
-                currentTab={this.state.currentTab}
                 currentStep={this.state.currentStep}
                 submitType={this.state.submitType}
-                toggleTab={this.toggleTab.bind(this)}
                 onInputApartmentChange={this.onInputApartmentChange.bind(this)}
                 onInputAddressChange={this.onInputAddressChange.bind(this)}
                 handleApartmentSubmit={this.handleApartmentSubmit.bind(this)}
