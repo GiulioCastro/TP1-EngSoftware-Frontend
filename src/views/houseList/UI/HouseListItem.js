@@ -12,8 +12,8 @@ class HouseListItem extends React.Component {
             <Link to={`/house/${house._id}`} className="list-group-item list-group-item-action list-group-item-light">
                 <div className="row">
                     <div className="col-3">
-                        <div className="d-flex align-items-center justify-content-center bg-secondary" style={{height: "135px", width: "135px"}}>
-                            <i className="fas fa-building fa-3x text-light" />
+                        <div className="d-flex align-items-center justify-content-center bg-secondary" style={{ height: "135px", width: "135px" }}>
+                            <i className="fas fa-home fa-3x text-light" />
                         </div>
                     </div>
                     <div className="col-9 d-flex flex-column justify-content-between">

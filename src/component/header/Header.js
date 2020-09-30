@@ -16,12 +16,12 @@ class Header extends React.Component {
                     <ul className="navbar-nav mr-auto">
                         <li className="nav-item">
                             <NavLink to="/houses" activeClassName="active" className="nav-link">
-                                Casas
+                                Casa
                             </NavLink>
                         </li>
                         <li className="nav-item">
                             <NavLink to="/apartments" activeClassName="active" className="nav-link">
-                                Apartamentos
+                                Apartamento
                             </NavLink>
                         </li>
                     </ul>
