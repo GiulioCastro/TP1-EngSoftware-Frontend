@@ -40,15 +40,6 @@ export default class RestAPI{
     static DeleteApartment = (id) => RestAPI.httpDelete(`${RestAPI.URL_APARTMENT}/delete/${id}`);
 
     // ************************************************** //
-    // Neighborhood Controller
-    // ************************************************** //
-    static URL_NEIGHBORHOOD = `${RestAPI.URL}/neighborhoods`;
-
-    static GetAllNeighborhoods = () => RestAPI.httpGet(`${RestAPI.URL_NEIGHBORHOOD}/getAll`);
-    static InsertNeighborhood = (body) => RestAPI.httpPost(`${RestAPI.URL_NEIGHBORHOOD}/insert`, body);
-    static DeleteNeighborhood = (name) => RestAPI.httpDelete(`${RestAPI.URL_NEIGHBORHOOD}/delete/${name}`);
-
-    // ************************************************** //
     // Viacep
     // ************************************************** //
     

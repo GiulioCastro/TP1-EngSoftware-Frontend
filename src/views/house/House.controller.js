@@ -90,24 +90,9 @@ class HouseController extends React.Component {
 					value: ""
                 },
                 neighborhood: {
-                    typeInput: GenericForm.FORM_SELECT,
+                    typeInput: GenericForm.FORM_INPUT,
 					required: true,
                     label: "Bairro",
-                    options: [
-                        {value: "", label: "Selecione"},
-                        {value: "Outro", label: "Outro"},
-                        {value: "Bairro 1", label: "Bairro 1"},
-                        {value: "Bairro 2", label: "Bairro 2"},
-                        {value: "Bairro 3", label: "Bairro 3"},
-                        {value: "Bairro 4", label: "Bairro 4"},
-                    ],
-					value: ""
-                },
-                neighborhoodInput: {
-                    typeInput: GenericForm.FORM_INPUT,
-                    hide: true,
-					required: true,
-                    label: "Especifique o bairro",
 					value: ""
                 },
                 streetName: {
@@ -133,40 +118,16 @@ class HouseController extends React.Component {
         };
         this.resetForm = this.resetForm.bind(this);
     }
+
     componentDidMount(){        
-        let p1 = this.getAllNeighborhoods(), p2;
-        if(this.props.match.params.id) p2 = this.getHouseById();
-
-        this.setState({awaitingData: true});
-        Promise.all([p1, p2]).then(() => {
-            this.setState({awaitingData: false});
-        }).catch((e) => this.setState({awaitingData: false}, () => {
-            console.log(e);
-            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
-            this.props.history.push("/houses");
-        }));
+        if(this.props.match.params.id) this.getHouseById();
     }
 
-    getAllNeighborhoods(){
-        return RestAPI.GetAllNeighborhoods().then((res) => {
-            console.log(res)
-            if(res.status && res.data) {
-                let {address} = this.state;
-                address.neighborhood.options = res.data.map((neighborhood) => {return {value: neighborhood.name, label: neighborhood.name}});
-                address.neighborhood.options.unshift({value: "Outro", label: "Outro"});
-                address.neighborhood.options.unshift({value: "", label: "Selecione"});
-                this.setState({address});
-            } else {
-                window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
-                this.props.history.push("/houses");
-            }
-        });
-    }
-    
     getHouseById(){
-        this.setState({submitType: HouseView.SUBMIT_TYPE.UPDATE});
+        this.setState({awaitingData: true, submitType: HouseView.SUBMIT_TYPE.UPDATE});
         RestAPI.GetHouseById(this.props.match.params.id).then((res) => {
             console.log(res)
+            this.setState({awaitingData: false});
             if(res.status && res.data) {
                 let {house, address} = this.state;
                 
@@ -182,13 +143,7 @@ class HouseController extends React.Component {
                 address.zipCode.value = Mask.applyMask(Mask.MASK.ZIP_CODE, res.data.address.zipCode);
                 address.uf.value = res.data.address.uf;
                 address.city.value = res.data.address.city;
-                if(address.neighborhood.options.find((o) => o.value === res.data.address.neighborhood)){
-                    address.neighborhood.value = res.data.address.neighborhood;
-                } else {
-                    address.neighborhood.value = "Outro";
-                    address.neighborhoodInput.hide = false;
-                    address.neighborhoodInput.value = res.data.address.neighborhood;
-                }
+                address.neighborhood.value = res.data.address.neighborhood;
                 address.streetName.value = res.data.address.streetName;
                 address.streetNumber.value = res.data.address.streetNumber;
 
@@ -197,7 +152,25 @@ class HouseController extends React.Component {
                 window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
                 this.props.history.push("/houses");
             }
-        });
+        }).catch((e) => this.setState({awaitingData: false}, () => {
+            console.log(e);
+            window.alert("Não foi possível obter a resposta do servidor, verifique sua conexão e tente novamente.");        
+            this.props.history.push("/houses");
+        }));
+    }
+
+    getAddressByCep(cep){
+        RestAPI.GetAddressByCep(cep).then((res) => {
+            console.log(res);
+			if(!res.erro){
+                let {address} = this.state;
+                address.streetName.value = res.logradouro;
+                address.neighborhood.value = res.bairro;
+                address.city.value = res.localidade;
+                address.uf.value = res.uf;
+                this.setState({address});
+			}
+		}).catch((e) => console.log("erro", e));
     }
 
     onInputHouseChange(value, id) {
@@ -218,13 +191,12 @@ class HouseController extends React.Component {
         switch(id){
             case "zipCode":
                 address[id].value = Mask.applyMask(Mask.MASK.ZIP_CODE, value);
+                if(address[id].value.match(/[0-9]{5}-[0-9]{3}/)){
+                    this.getAddressByCep(address[id].value);
+                }
                 break;
             case "uf":
                 address[id].value = Mask.applyMask(Mask.MASK.UF, value).toUpperCase();
-                break;
-            case "neighborhood":
-                address[id].value = value;
-                address.neighborhoodInput.hide = value !== "Outro";
                 break;
             default:
                 address[id].value = value;
